@@ -142,20 +142,50 @@
         text-align: justify;
       }
 
-      #scenarios .mr-grid {
-        display: grid;
-        grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
-        gap: 36px;
-        align-items: start;
+      #scenarios .mr-results-stack {
+        display: block;
+        width: 100%;
       }
 
-      #scenarios .mr-grid .mr-table {
-        font-size: 14px;
+      #scenarios .mr-results-stack > .mr-block {
+        width: 100%;
       }
 
-      #scenarios .mr-grid .mr-table th,
-      #scenarios .mr-grid .mr-table td {
-        padding: 8px 5px;
+      /* Goal-distance figure: full-width section, centered image. */
+      #scenarios .mr-distance-figure {
+        max-width: 820px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      #scenarios .mr-distance-figure img {
+        width: min(760px, 100%);
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      /* Scene-wise tables: stacked vertically and use the full content width. */
+      #scenarios .mr-scene-results {
+        max-width: 1040px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      #scenarios .mr-scene-block {
+        margin: 0 0 28px;
+      }
+
+      #scenarios .mr-scene-block:last-child {
+        margin-bottom: 0;
+      }
+
+      #scenarios .mr-scene-results .mr-table {
+        font-size: 16px;
+      }
+
+      #scenarios .mr-scene-results .mr-table th,
+      #scenarios .mr-scene-results .mr-table td {
+        padding: 9px 10px;
       }
 
       #scenarios .mr-scene-heading {
@@ -195,16 +225,15 @@
       }
 
       @media (max-width: 900px) {
-        #scenarios .mr-grid {
-          grid-template-columns: minmax(0, 1fr);
-          gap: 0;
+        #scenarios .mr-distance-figure {
+          max-width: 680px;
         }
 
         #scenarios .mr-distance-figure img {
-          max-width: 560px;
+          width: 100%;
         }
 
-        #scenarios .mr-grid .mr-table {
+        #scenarios .mr-scene-results .mr-table {
           font-size: 15px;
         }
       }
@@ -303,31 +332,29 @@
           <h2>Abstract</h2>
 
           <p>
-            Fixed-horizon diffusion motion planning can generate complete
-            point-to-point trajectories, yet terminal goal constraints do not
-            explicitly regulate when the task-completion state is established
-            within the planning horizon. To address this issue, this paper
-            proposes <strong>Earliest Stable Arrival Guidance (ESAG)</strong>,
-            which defines task completion through the persistent satisfaction
-            of goal-position and low-velocity conditions over the remaining
-            trajectory suffix and treats the stable-completion time as an
-            explicit temporal optimization quantity within the fixed horizon.
-            We further establish a suffix-occupancy representation of the
-            earliest stable-arrival time, prove its exact equivalence to the
-            normalized stable-arrival time, and derive a differentiable ESAG
-            objective through continuous smoothing. This objective is
-            incorporated into the reverse-diffusion process as inference-time
-            guidance without retraining the diffusion prior or modifying the
-            planning horizon. Experiments on 60 held-out scenarios covering
-            regular, long-detour, and terminal-stabilization-challenging tasks
-            show that ESAG increases the stable-completion rate from
-            <strong>9.00% to 91.33%</strong> while largely preserving the
-            navigation success rate. It also advances both goal-entry and
-            stable-arrival times, shortens the path length, and maintains a
-            100% collision-free rate together with high motion feasibility.
-            Real-robot experiments further show that ESAG increases the
-            stable-completion rate from <strong>13.33% to 95.00%</strong>
-            and exhibits a consistent advancement in stable-arrival timing.
+            Fixed-horizon diffusion motion planning can generate complete point-to-point
+            trajectories over a prescribed temporal support, but existing terminal goal
+            constraints mainly specify the conditions to be satisfied at the trajectory
+            endpoint and do not explicitly regulate when the goal-position and low-velocity
+            conditions begin to hold persistently. To address this issue, we propose
+            <strong>Earliest Stable Arrival Guidance (ESAG)</strong>, which defines stable
+            task completion through the persistent satisfaction of the goal-position and
+            low-velocity conditions over the remaining trajectory and treats the first time
+            at which such persistent satisfaction is established as an explicit optimization
+            quantity within the fixed horizon. We further construct a suffix-occupancy representation of the earliest
+            stable-arrival time, prove its exact equivalence to the normalized
+            stable-arrival time, and derive a differentiable ESAG objective through smooth
+            approximations. The resulting objective is incorporated into the reverse-diffusion
+            process as inference-time guidance without retraining the diffusion prior or
+            modifying the planning horizon. Experiments on 60 held-out scenarios show that
+            ESAG increases the stable-completion rate from <strong>9.00%</strong> to
+            <strong>91.33%</strong> while largely preserving the navigation success rate.
+            It also advances both goal-entry and stable-arrival times, shortens the path
+            length, and maintains a <strong>100% collision-free rate</strong> together with
+            high motion feasibility. Real-robot experiments further show that ESAG increases
+            the stable-completion rate from <strong>13.33%</strong> to
+            <strong>95.00%</strong> and exhibits a consistent advancement in stable-arrival
+            timing.
           </p>
         </div>
       </section>
@@ -341,13 +368,13 @@
 
         <figure>
           <a
-            href="assets/framework.webp"
+            href="assets/framework.png"
             target="_blank"
             rel="noopener"
             aria-label="View full-resolution figure: Overview of the ESAG framework"
           >
             <img
-              src="assets/framework.webp"
+              src="assets/framework.png"
               alt="Overview of the ESAG framework"
               loading="lazy"
             >
@@ -494,13 +521,13 @@
               individual trials rather than category-wise averages.
             </figcaption>
             <a
-              href="assets/trajectory-comparison.webp"
+              href="assets/trajectory-comparison.png"
               target="_blank"
               rel="noopener"
               aria-label="View full-resolution representative trajectories"
             >
               <img
-                src="assets/trajectory-comparison.webp"
+                src="assets/trajectory-comparison.png"
                 alt="Representative trajectories of RRT*+TOPP-RA, GPMP2-ATS, MPD and ESAG across three task categories"
                 loading="lazy"
               >
@@ -520,52 +547,8 @@
           </figure>
         </article>
 
-        <!-- ==================== 3、4. 距离曲线与分场景表 ==================== -->
-        <div class="mr-grid">
-          <!-- 左列：目标距离曲线 -->
-          <article class="mr-block">
-            <h3 class="mr-subtitle">Goal-Distance Profiles</h3>
-
-            <figure class="mr-figure mr-distance-figure">
-              <!--
-                将目标距离曲线图片保存为 assets/goal-distance.png。
-                建议去掉图片底部原有的图注，仅保留三个曲线子图；
-                网页图注在下面的 figcaption 中单独编辑。
-              -->
-                           <!-- 距离曲线图注：在这里修改 -->
-             <figcaption>
-               <strong>Figure 6.</strong>
-                Markers indicate the first goal-entry
-               time, while the dashed horizontal line denotes the goal-region
-               threshold. 
-             </figcaption>
-              <a
-                href="assets/goal-distance.webp"
-                target="_blank"
-                rel="noopener"
-                aria-label="View full-resolution goal-distance profiles"
-              >
-                <img
-                  src="assets/goal-distance.webp"
-                  alt="Goal-distance profiles in Regular Midrange, Long Detour and Stabilization Challenging tasks"
-                  loading="lazy"
-                >
-              </a>
-
- 
- 
- 
- 
- 
- 
- 
- 
- 
-            </figure>
-          </article>
-
-          <!-- 右列：分场景结果表 -->
-          <article class="mr-block" id="results">
+        <!-- ==================== 4. 分场景规划性能 ==================== -->
+          <article class="mr-block mr-scene-results" id="results">
             <h3 class="mr-subtitle">Scene-wise Planning Performance</h3>
 
             <p class="mr-table-caption">
@@ -575,174 +558,198 @@
             </p>
 
             <!-- A 类 -->
-            <h4 class="mr-scene-heading">A · Regular Midrange</h4>
+            <div class="mr-scene-block">
+              <h4 class="mr-scene-heading">A · Regular Midrange</h4>
 
-            <div
-              class="mr-table-wrapper"
-              tabindex="0"
-              role="region"
-              aria-label="Category A planning performance"
-            >
-              <table class="mr-table">
-                <thead>
-                  <tr>
-                    <th scope="col">Method</th>
-                    <th scope="col">Nav. (%) ↑</th>
-                    <th scope="col">Stable (%) ↑</th>
-                    <th scope="col">T<sub>enter</sub> (s) ↓</th>
-                    <th scope="col">T<sub>sa</sub> (s) ↓</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  <tr>
-                    <th scope="row">RRT*+TOPP-RA</th>
-                    <td>91</td>
-                    <td>91</td>
-                    <td><strong>3.286</strong></td>
-                    <td><strong>3.523</strong></td>
-                  </tr>
-
-                  <tr>
-                    <th scope="row">GPMP2-ATS</th>
-                    <td>99</td>
-                    <td>3</td>
-                    <td>3.390</td>
-                    <td>3.583</td>
-                  </tr>
-
-                  <tr>
-                    <th scope="row">MPD</th>
-                    <td><strong>100</strong></td>
-                    <td>14</td>
-                    <td>7.628</td>
-                    <td>7.875</td>
-                  </tr>
-
-                  <tr class="mr-esag-row">
-                    <th scope="row">ESAG</th>
-                    <td><strong>100</strong></td>
-                    <td><strong>100</strong></td>
-                    <td>5.566</td>
-                    <td>6.135</td>
-                  </tr>
-                </tbody>
-              </table>
+              <div
+                class="mr-table-wrapper"
+                tabindex="0"
+                role="region"
+                aria-label="Category A planning performance"
+              >
+                <table class="mr-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Method</th>
+                      <th scope="col">Nav. (%) ↑</th>
+                      <th scope="col">Stable (%) ↑</th>
+                      <th scope="col">T<sub>enter</sub> (s) ↓</th>
+                      <th scope="col">T<sub>sa</sub> (s) ↓</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <th scope="row">RRT*+TOPP-RA</th>
+                      <td>91</td>
+                      <td>91</td>
+                      <td><strong>3.286</strong></td>
+                      <td><strong>3.523</strong></td>
+                    </tr>
+                    <tr>
+                      <th scope="row">GPMP2-ATS</th>
+                      <td>99</td>
+                      <td>3</td>
+                      <td>3.390</td>
+                      <td>3.583</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">MPD</th>
+                      <td><strong>100</strong></td>
+                      <td>14</td>
+                      <td>7.628</td>
+                      <td>7.875</td>
+                    </tr>
+                    <tr class="mr-esag-row">
+                      <th scope="row">ESAG</th>
+                      <td><strong>100</strong></td>
+                      <td><strong>100</strong></td>
+                      <td>5.566</td>
+                      <td>6.135</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             <!-- B 类 -->
-            <h4 class="mr-scene-heading">B · Long Detour</h4>
+            <div class="mr-scene-block">
+              <h4 class="mr-scene-heading">B · Long Detour</h4>
 
-            <div
-              class="mr-table-wrapper"
-              tabindex="0"
-              role="region"
-              aria-label="Category B planning performance"
-            >
-              <table class="mr-table">
-                <thead>
-                  <tr>
-                    <th scope="col">Method</th>
-                    <th scope="col">Nav. (%) ↑</th>
-                    <th scope="col">Stable (%) ↑</th>
-                    <th scope="col">T<sub>enter</sub> (s) ↓</th>
-                    <th scope="col">T<sub>sa</sub> (s) ↓</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  <tr>
-                    <th scope="row">RRT*+TOPP-RA</th>
-                    <td>58</td>
-                    <td>58</td>
-                    <td>8.914</td>
-                    <td>9.153</td>
-                  </tr>
-
-                  <tr>
-                    <th scope="row">GPMP2-ATS</th>
-                    <td>56</td>
-                    <td>1</td>
-                    <td>8.556</td>
-                    <td>13.250</td>
-                  </tr>
-
-                  <tr>
-                    <th scope="row">MPD</th>
-                    <td><strong>82</strong></td>
-                    <td>0</td>
-                    <td>7.750</td>
-                    <td>–</td>
-                  </tr>
-
-                  <tr class="mr-esag-row">
-                    <th scope="row">ESAG</th>
-                    <td>80</td>
-                    <td><strong>79</strong></td>
-                    <td><strong>6.537</strong></td>
-                    <td><strong>6.943</strong></td>
-                  </tr>
-                </tbody>
-              </table>
+              <div
+                class="mr-table-wrapper"
+                tabindex="0"
+                role="region"
+                aria-label="Category B planning performance"
+              >
+                <table class="mr-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Method</th>
+                      <th scope="col">Nav. (%) ↑</th>
+                      <th scope="col">Stable (%) ↑</th>
+                      <th scope="col">T<sub>enter</sub> (s) ↓</th>
+                      <th scope="col">T<sub>sa</sub> (s) ↓</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <th scope="row">RRT*+TOPP-RA</th>
+                      <td>58</td>
+                      <td>58</td>
+                      <td>8.914</td>
+                      <td>9.153</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">GPMP2-ATS</th>
+                      <td>56</td>
+                      <td>1</td>
+                      <td>8.556</td>
+                      <td>13.250</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">MPD</th>
+                      <td><strong>82</strong></td>
+                      <td>0</td>
+                      <td>7.750</td>
+                      <td>–</td>
+                    </tr>
+                    <tr class="mr-esag-row">
+                      <th scope="row">ESAG</th>
+                      <td>80</td>
+                      <td><strong>79</strong></td>
+                      <td><strong>6.537</strong></td>
+                      <td><strong>6.943</strong></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             <!-- C 类 -->
-            <h4 class="mr-scene-heading">C · Stabilization Challenging</h4>
+            <div class="mr-scene-block">
+              <h4 class="mr-scene-heading">C · Stabilization Challenging</h4>
 
-            <div
-              class="mr-table-wrapper"
-              tabindex="0"
-              role="region"
-              aria-label="Category C planning performance"
-            >
-              <table class="mr-table">
-                <thead>
-                  <tr>
-                    <th scope="col">Method</th>
-                    <th scope="col">Nav. (%) ↑</th>
-                    <th scope="col">Stable (%) ↑</th>
-                    <th scope="col">T<sub>enter</sub> (s) ↓</th>
-                    <th scope="col">T<sub>sa</sub> (s) ↓</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  <tr>
-                    <th scope="row">RRT*+TOPP-RA</th>
-                    <td>69</td>
-                    <td>69</td>
-                    <td><strong>5.149</strong></td>
-                    <td><strong>5.388</strong></td>
-                  </tr>
-
-                  <tr>
-                    <th scope="row">GPMP2-ATS</th>
-                    <td>79</td>
-                    <td>3</td>
-                    <td>5.163</td>
-                    <td>11.167</td>
-                  </tr>
-
-                  <tr>
-                    <th scope="row">MPD</th>
-                    <td><strong>95</strong></td>
-                    <td>13</td>
-                    <td>7.696</td>
-                    <td>7.875</td>
-                  </tr>
-
-                  <tr class="mr-esag-row">
-                    <th scope="row">ESAG</th>
-                    <td><strong>95</strong></td>
-                    <td><strong>95</strong></td>
-                    <td>6.079</td>
-                    <td>6.665</td>
-                  </tr>
-                </tbody>
-              </table>
+              <div
+                class="mr-table-wrapper"
+                tabindex="0"
+                role="region"
+                aria-label="Category C planning performance"
+              >
+                <table class="mr-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Method</th>
+                      <th scope="col">Nav. (%) ↑</th>
+                      <th scope="col">Stable (%) ↑</th>
+                      <th scope="col">T<sub>enter</sub> (s) ↓</th>
+                      <th scope="col">T<sub>sa</sub> (s) ↓</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <th scope="row">RRT*+TOPP-RA</th>
+                      <td>69</td>
+                      <td>69</td>
+                      <td><strong>5.149</strong></td>
+                      <td><strong>5.388</strong></td>
+                    </tr>
+                    <tr>
+                      <th scope="row">GPMP2-ATS</th>
+                      <td>79</td>
+                      <td>3</td>
+                      <td>5.163</td>
+                      <td>11.167</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">MPD</th>
+                      <td><strong>95</strong></td>
+                      <td>13</td>
+                      <td>7.696</td>
+                      <td>7.875</td>
+                    </tr>
+                    <tr class="mr-esag-row">
+                      <th scope="row">ESAG</th>
+                      <td><strong>95</strong></td>
+                      <td><strong>95</strong></td>
+                      <td>6.079</td>
+                      <td>6.665</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
 
           </article>
+
+        <!-- ==================== 3. 目标距离曲线 ==================== -->
+        <div class="mr-results-stack">
+
+          <article class="mr-block">
+            <h3 class="mr-subtitle">Goal-Distance Profiles</h3>
+
+            <figure class="mr-figure mr-distance-figure">
+              <figcaption>
+                <strong>Figure 6.</strong>
+                Markers indicate the first goal-entry time, while the dashed
+                horizontal line denotes the goal-region threshold.
+              </figcaption>
+
+              <a
+                href="assets/goal-distance.png"
+                target="_blank"
+                rel="noopener"
+                aria-label="View full-resolution goal-distance profiles"
+              >
+                <img
+                  src="assets/goal-distance.png"
+                  alt="Goal-distance profiles in Regular Midrange, Long Detour and Stabilization Challenging tasks"
+                  loading="lazy"
+                >
+              </a>
+            </figure>
+          </article>
+
+          
         </div>
 
         <!-- 主要结果统一说明 -->
@@ -1564,3 +1571,7 @@
    
    
    
+
+    </main>
+  </body>
+</html>
