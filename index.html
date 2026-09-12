@@ -1,0 +1,1566 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1"
+    >
+
+    <meta
+      name="description"
+      content="ESAG: earliest stable arrival guidance for fixed-horizon diffusion motion planning. Research overview, planning scenarios and real-robot evaluation."
+    >
+
+    <title>ESAG — Earliest Stable Arrival Guidance</title>
+
+    <!-- 保留你原来的样式文件 -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- 以下新增样式仅作用于主要结果区域 -->
+    <style>
+      #scenarios.main-results {
+        padding-top: 52px;
+        padding-bottom: 24px;
+      }
+
+      #scenarios .mr-intro {
+        margin: 0 auto 36px;
+        color: #666;
+        font-size: 17px;
+        line-height: 1.7;
+        text-align: center;
+      }
+
+      #scenarios .mr-block {
+        min-width: 0;
+        margin-bottom: 42px;
+      }
+
+      #scenarios .mr-subtitle {
+        margin: 0 0 22px;
+        color: #303030;
+        font-size: 23px;
+        font-weight: 650;
+        line-height: 1.35;
+        text-align: center;
+      }
+
+      #scenarios .mr-table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      #scenarios .mr-table {
+        width: 100%;
+        border-collapse: collapse;
+        border-top: 2px solid #222;
+        border-bottom: 2px solid #222;
+        color: #222;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 16px;
+        line-height: 1.5;
+        white-space: nowrap;
+      }
+
+      #scenarios .mr-table caption {
+        padding: 0 0 14px;
+        color: #222;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 17px;
+        font-weight: 400;
+        line-height: 1.55;
+        text-align: left;
+        white-space: normal;
+        caption-side: top;
+      }
+
+      #scenarios .mr-table th,
+      #scenarios .mr-table td {
+        padding: 9px 7px;
+        border: 0;
+        font-weight: 400;
+        text-align: center;
+        vertical-align: middle;
+      }
+
+      #scenarios .mr-table thead th {
+        border-bottom: 1px solid #777;
+      }
+
+      #scenarios .mr-table tbody th,
+      #scenarios .mr-table thead th:first-child {
+        text-align: left;
+      }
+
+      #scenarios .mr-table strong {
+        font-weight: 700;
+      }
+
+      #scenarios .mr-table .mr-esag-row {
+        background: #eaeaea;
+      }
+
+      #scenarios .mr-explanation {
+        margin: 18px 0 0;
+        color: #333;
+        font-size: 16px;
+        line-height: 1.75;
+        text-align: justify;
+      }
+
+      #scenarios .mr-figure {
+        margin: 0;
+      }
+
+      #scenarios .mr-figure > a {
+        display: block;
+      }
+
+      #scenarios .mr-figure img {
+        display: block;
+        width: 100%;
+        height: auto;
+        margin: 0 auto;
+        border: 0;
+        border-radius: 0;
+        background: #fff;
+      }
+
+      /* 独立图注区域：在 HTML 的 figcaption 内编辑文字 */
+      #scenarios .mr-figure figcaption {
+        display: block;
+        min-height: 28px;
+        margin: 16px 0 0;
+        padding: 0;
+        color: #444;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 16px;
+        line-height: 1.65;
+        text-align: justify;
+      }
+
+      #scenarios .mr-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+        gap: 36px;
+        align-items: start;
+      }
+
+      #scenarios .mr-grid .mr-table {
+        font-size: 14px;
+      }
+
+      #scenarios .mr-grid .mr-table th,
+      #scenarios .mr-grid .mr-table td {
+        padding: 8px 5px;
+      }
+
+      #scenarios .mr-scene-heading {
+        margin: 22px 0 10px;
+        padding: 8px 12px;
+        background: #f3f6fa;
+        color: #225998;
+        font-size: 15px;
+        font-weight: 650;
+        line-height: 1.5;
+      }
+
+      #scenarios .mr-scene-heading:first-of-type {
+        margin-top: 0;
+      }
+
+      #scenarios .mr-table-caption {
+        margin: 0 0 18px;
+        color: #333;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 16px;
+        line-height: 1.6;
+      }
+
+      #scenarios .mr-note {
+        margin: 0;
+        padding-top: 18px;
+        border-top: 1px solid #ddd;
+        color: #666;
+        font-size: 14px;
+        line-height: 1.7;
+      }
+
+      #scenarios .mr-table-wrapper:focus-visible {
+        outline: 2px solid #1761c5;
+        outline-offset: 4px;
+      }
+
+      @media (max-width: 900px) {
+        #scenarios .mr-grid {
+          grid-template-columns: minmax(0, 1fr);
+          gap: 0;
+        }
+
+        #scenarios .mr-distance-figure img {
+          max-width: 560px;
+        }
+
+        #scenarios .mr-grid .mr-table {
+          font-size: 15px;
+        }
+      }
+
+      @media (max-width: 600px) {
+        #scenarios .mr-subtitle {
+          font-size: 21px;
+        }
+
+        #scenarios .mr-intro,
+        #scenarios .mr-explanation {
+          font-size: 16px;
+          text-align: left;
+        }
+
+        #scenarios .mr-table {
+          font-size: 14px;
+        }
+
+        #scenarios .mr-figure figcaption {
+          font-size: 14px;
+          text-align: left;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <main id="main">
+      <!-- ==================== 页面标题 ==================== -->
+      <section class="publication-header container">
+        <div class="project-mark" aria-label="ESAG">
+          <span class="robot-mark" aria-hidden="true">
+            <i></i>
+            <b></b>
+            <em></em>
+          </span>
+
+          <span class="project-name">
+            E<span>S</span><span>A</span><span>G</span>
+          </span>
+        </div>
+
+        <p class="mark-caption"></p>
+
+        <h1>
+          Earliest Stable Arrival Guidance for Explicit Stable-Completion
+          Timing in Fixed-Horizon Diffusion Motion Planning
+        </h1>
+
+        <!-- Author names, affiliations and publication links can be added here. -->
+
+        <div class="publication-links">
+          <a href="#method">Method</a>
+          <a href="#scenarios">Results</a>
+          <a href="#robot">Real Robot</a>
+        </div>
+      </section>
+
+      <!-- ==================== 首页展示图 ==================== -->
+<!--       <section class="teaser container"> -->
+<!--         <figure> -->
+<!--           <a -->
+<!--             href="assets/robot.webp" -->
+<!--             target="_blank" -->
+<!--             rel="noopener" -->
+<!--             aria-label="View full-resolution figure: Real-robot platform and indoor navigation experiments" -->
+<!--           > -->
+<!--             <img -->
+<!--               src="assets/robot.webp" -->
+<!--               alt="Real-robot platform and indoor navigation experiments" -->
+<!--               loading="lazy" -->
+<!--             > -->
+<!--           </a> -->
+<!--  -->
+<!--           <figcaption> -->
+<!--             ESAG on an omnidirectional mobile robot in indoor navigation tasks. -->
+<!--           </figcaption> -->
+<!--         </figure> -->
+<!--  -->
+<!--         <p class="teaser-summary"> -->
+<!--           We introduce <strong>ESAG</strong>, a differentiable inference-time -->
+<!--           objective that enables <strong>earlier stable completion</strong> -->
+<!--           in fixed-horizon diffusion motion planning, -->
+<!--           <strong> -->
+<!--             without retraining the diffusion prior or changing the planning horizon. -->
+<!--           </strong> -->
+<!--         </p> -->
+<!--       </section> -->
+
+      <!-- ==================== 摘要 ==================== -->
+      <section class="abstract-band">
+        <div class="abstract-container">
+          <h2>Abstract</h2>
+
+          <p>
+            Fixed-horizon diffusion motion planning can generate complete
+            point-to-point trajectories, yet terminal goal constraints do not
+            explicitly regulate when the task-completion state is established
+            within the planning horizon. To address this issue, this paper
+            proposes <strong>Earliest Stable Arrival Guidance (ESAG)</strong>,
+            which defines task completion through the persistent satisfaction
+            of goal-position and low-velocity conditions over the remaining
+            trajectory suffix and treats the stable-completion time as an
+            explicit temporal optimization quantity within the fixed horizon.
+            We further establish a suffix-occupancy representation of the
+            earliest stable-arrival time, prove its exact equivalence to the
+            normalized stable-arrival time, and derive a differentiable ESAG
+            objective through continuous smoothing. This objective is
+            incorporated into the reverse-diffusion process as inference-time
+            guidance without retraining the diffusion prior or modifying the
+            planning horizon. Experiments on 60 held-out scenarios covering
+            regular, long-detour, and terminal-stabilization-challenging tasks
+            show that ESAG increases the stable-completion rate from
+            <strong>9.00% to 91.33%</strong> while largely preserving the
+            navigation success rate. It also advances both goal-entry and
+            stable-arrival times, shortens the path length, and maintains a
+            100% collision-free rate together with high motion feasibility.
+            Real-robot experiments further show that ESAG increases the
+            stable-completion rate from <strong>13.33% to 95.00%</strong>
+            and exhibits a consistent advancement in stable-arrival timing.
+          </p>
+        </div>
+      </section>
+
+      <!-- ==================== 方法框架 ==================== -->
+      <section class="paper-section container" id="method">
+        <h2 class="icon-title">
+          <span class="topic-icon" aria-hidden="true">🤖</span>
+          Framework Overview
+        </h2>
+
+        <figure>
+          <a
+            href="assets/framework.webp"
+            target="_blank"
+            rel="noopener"
+            aria-label="View full-resolution figure: Overview of the ESAG framework"
+          >
+            <img
+              src="assets/framework.webp"
+              alt="Overview of the ESAG framework"
+              loading="lazy"
+            >
+          </a>
+
+          <figcaption>
+            <!-- 在这里填写框架图图注 -->
+          </figcaption>
+        </figure>
+
+        <p class="explanation">
+          <strong>Overview of ESAG.</strong>
+          A differentiable earliest-stable-arrival objective is incorporated
+          into reverse diffusion to guide trajectory refinement under collision
+          and motion-feasibility constraints. Representative planning scenarios
+          are shown on the right.
+        </p>
+      </section>
+
+      <!-- ==================== 主要结果 ==================== -->
+      <section class="paper-section container main-results" id="scenarios">
+        <h2 class="icon-title">
+          <span class="topic-icon" aria-hidden="true">📊</span>
+          Main Results
+        </h2>
+
+        <p class="mr-intro">
+          <!-- Evaluation on 60 fixed held-out navigation scenarios, -->
+          <!-- with 300 trials per method. -->
+        </p>
+
+        <!-- ==================== 1. 总体结果表 ==================== -->
+        <article class="mr-block">
+          <h3 class="mr-subtitle">Overall Planning Performance</h3>
+
+          <div
+            class="mr-table-wrapper"
+            tabindex="0"
+            role="region"
+            aria-label="Overall planning performance table"
+          >
+            <table class="mr-table">
+              <caption>
+                <strong>Table I.</strong>
+                Overall planning performance on 60 fixed held-out scenarios.
+                Each method is evaluated over 300 trials.
+                Bold indicates the best value in each column.
+              </caption>
+
+              <thead>
+                <tr>
+                  <th scope="col">Method</th>
+                  <th scope="col">Nav. (%) ↑</th>
+                  <th scope="col">Stable (%) ↑</th>
+                  <th scope="col">CF (%) ↑</th>
+                  <th scope="col">Dyn. (%) ↑</th>
+                  <th scope="col">T<sub>enter</sub> (s) ↓</th>
+                  <th scope="col">T<sub>sa</sub> (s) ↓</th>
+                  <th scope="col">Path (m) ↓</th>
+                  <th scope="col">Planning (s) ↓</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr>
+                  <th scope="row">RRT*+TOPP-RA</th>
+                  <td>72.67</td>
+                  <td>72.67</td>
+                  <td>86.00</td>
+                  <td>72.67</td>
+                  <td>5.373</td>
+                  <td><strong>5.611</strong></td>
+                  <td>9.483</td>
+                  <td>10.261</td>
+                </tr>
+
+                <tr>
+                  <th scope="row">GPMP2-ATS</th>
+                  <td>78.00</td>
+                  <td>2.33</td>
+                  <td>78.00</td>
+                  <td>78.00</td>
+                  <td><strong>5.225</strong></td>
+                  <td>8.214</td>
+                  <td>8.996</td>
+                  <td>40.852</td>
+                </tr>
+
+                <tr>
+                  <th scope="row">MPD</th>
+                  <td><strong>92.33</strong></td>
+                  <td>9.00</td>
+                  <td><strong>100.00</strong></td>
+                  <td>92.33</td>
+                  <td>7.685</td>
+                  <td>7.875</td>
+                  <td>9.019</td>
+                  <td><strong>0.452</strong></td>
+                </tr>
+
+                <tr class="mr-esag-row">
+                  <th scope="row">ESAG</th>
+                  <td>91.67</td>
+                  <td><strong>91.33</strong></td>
+                  <td><strong>100.00</strong></td>
+                  <td><strong>94.67</strong></td>
+                  <td>6.026</td>
+                  <td>6.552</td>
+                  <td><strong>7.947</strong></td>
+                  <td>0.685</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="mr-explanation">
+            <strong>
+              <!-- ESAG increases stable completion from 9.00% to 91.33% -->
+            </strong>
+            <!-- compared with MPD, while both achieve a 100% collision-free rate. -->
+            <!-- Navigation success is 91.67% versus 92.33%, and mean stable-arrival -->
+            <!-- time decreases from 7.875 s to 6.552 s. -->
+          </p>
+        </article>
+
+        <!-- ==================== 2. 轨迹对比图 ==================== -->
+        <article class="mr-block" id="qualitative">
+          <h3 class="mr-subtitle">Representative Trajectories</h3>
+
+          <figure class="mr-figure">
+            <!--
+              此处使用原网页已有的轨迹图。
+              建议图片文件只保留图形，图注单独写在下面。
+            -->
+            <!-- 轨迹图图注：在这里修改 -->
+            <figcaption>
+              <strong>Figure 5.</strong>
+              Representative trajectories of RRT*+TOPP-RA, GPMP2-ATS, MPD,
+              and ESAG on one fixed context from each scene category.
+              Trajectory color denotes the finite-difference speed.
+              The three rows correspond to Category A (context 305),
+              Category B (context 795), and Category C (context 986),
+              respectively. These examples correspond to representative
+              individual trials rather than category-wise averages.
+            </figcaption>
+            <a
+              href="assets/trajectory-comparison.webp"
+              target="_blank"
+              rel="noopener"
+              aria-label="View full-resolution representative trajectories"
+            >
+              <img
+                src="assets/trajectory-comparison.webp"
+                alt="Representative trajectories of RRT*+TOPP-RA, GPMP2-ATS, MPD and ESAG across three task categories"
+                loading="lazy"
+              >
+            </a>
+
+
+
+
+
+
+
+
+
+
+
+
+          </figure>
+        </article>
+
+        <!-- ==================== 3、4. 距离曲线与分场景表 ==================== -->
+        <div class="mr-grid">
+          <!-- 左列：目标距离曲线 -->
+          <article class="mr-block">
+            <h3 class="mr-subtitle">Goal-Distance Profiles</h3>
+
+            <figure class="mr-figure mr-distance-figure">
+              <!--
+                将目标距离曲线图片保存为 assets/goal-distance.png。
+                建议去掉图片底部原有的图注，仅保留三个曲线子图；
+                网页图注在下面的 figcaption 中单独编辑。
+              -->
+                           <!-- 距离曲线图注：在这里修改 -->
+             <figcaption>
+               <strong>Figure 6.</strong>
+                Markers indicate the first goal-entry
+               time, while the dashed horizontal line denotes the goal-region
+               threshold. 
+             </figcaption>
+              <a
+                href="assets/goal-distance.webp"
+                target="_blank"
+                rel="noopener"
+                aria-label="View full-resolution goal-distance profiles"
+              >
+                <img
+                  src="assets/goal-distance.webp"
+                  alt="Goal-distance profiles in Regular Midrange, Long Detour and Stabilization Challenging tasks"
+                  loading="lazy"
+                >
+              </a>
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+            </figure>
+          </article>
+
+          <!-- 右列：分场景结果表 -->
+          <article class="mr-block" id="results">
+            <h3 class="mr-subtitle">Scene-wise Planning Performance</h3>
+
+            <p class="mr-table-caption">
+              <strong>Table II.</strong>
+              Scene-wise planning performance on the three categories of
+              fixed held-out scenarios.
+            </p>
+
+            <!-- A 类 -->
+            <h4 class="mr-scene-heading">A · Regular Midrange</h4>
+
+            <div
+              class="mr-table-wrapper"
+              tabindex="0"
+              role="region"
+              aria-label="Category A planning performance"
+            >
+              <table class="mr-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Method</th>
+                    <th scope="col">Nav. (%) ↑</th>
+                    <th scope="col">Stable (%) ↑</th>
+                    <th scope="col">T<sub>enter</sub> (s) ↓</th>
+                    <th scope="col">T<sub>sa</sub> (s) ↓</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr>
+                    <th scope="row">RRT*+TOPP-RA</th>
+                    <td>91</td>
+                    <td>91</td>
+                    <td><strong>3.286</strong></td>
+                    <td><strong>3.523</strong></td>
+                  </tr>
+
+                  <tr>
+                    <th scope="row">GPMP2-ATS</th>
+                    <td>99</td>
+                    <td>3</td>
+                    <td>3.390</td>
+                    <td>3.583</td>
+                  </tr>
+
+                  <tr>
+                    <th scope="row">MPD</th>
+                    <td><strong>100</strong></td>
+                    <td>14</td>
+                    <td>7.628</td>
+                    <td>7.875</td>
+                  </tr>
+
+                  <tr class="mr-esag-row">
+                    <th scope="row">ESAG</th>
+                    <td><strong>100</strong></td>
+                    <td><strong>100</strong></td>
+                    <td>5.566</td>
+                    <td>6.135</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- B 类 -->
+            <h4 class="mr-scene-heading">B · Long Detour</h4>
+
+            <div
+              class="mr-table-wrapper"
+              tabindex="0"
+              role="region"
+              aria-label="Category B planning performance"
+            >
+              <table class="mr-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Method</th>
+                    <th scope="col">Nav. (%) ↑</th>
+                    <th scope="col">Stable (%) ↑</th>
+                    <th scope="col">T<sub>enter</sub> (s) ↓</th>
+                    <th scope="col">T<sub>sa</sub> (s) ↓</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr>
+                    <th scope="row">RRT*+TOPP-RA</th>
+                    <td>58</td>
+                    <td>58</td>
+                    <td>8.914</td>
+                    <td>9.153</td>
+                  </tr>
+
+                  <tr>
+                    <th scope="row">GPMP2-ATS</th>
+                    <td>56</td>
+                    <td>1</td>
+                    <td>8.556</td>
+                    <td>13.250</td>
+                  </tr>
+
+                  <tr>
+                    <th scope="row">MPD</th>
+                    <td><strong>82</strong></td>
+                    <td>0</td>
+                    <td>7.750</td>
+                    <td>–</td>
+                  </tr>
+
+                  <tr class="mr-esag-row">
+                    <th scope="row">ESAG</th>
+                    <td>80</td>
+                    <td><strong>79</strong></td>
+                    <td><strong>6.537</strong></td>
+                    <td><strong>6.943</strong></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- C 类 -->
+            <h4 class="mr-scene-heading">C · Stabilization Challenging</h4>
+
+            <div
+              class="mr-table-wrapper"
+              tabindex="0"
+              role="region"
+              aria-label="Category C planning performance"
+            >
+              <table class="mr-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Method</th>
+                    <th scope="col">Nav. (%) ↑</th>
+                    <th scope="col">Stable (%) ↑</th>
+                    <th scope="col">T<sub>enter</sub> (s) ↓</th>
+                    <th scope="col">T<sub>sa</sub> (s) ↓</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr>
+                    <th scope="row">RRT*+TOPP-RA</th>
+                    <td>69</td>
+                    <td>69</td>
+                    <td><strong>5.149</strong></td>
+                    <td><strong>5.388</strong></td>
+                  </tr>
+
+                  <tr>
+                    <th scope="row">GPMP2-ATS</th>
+                    <td>79</td>
+                    <td>3</td>
+                    <td>5.163</td>
+                    <td>11.167</td>
+                  </tr>
+
+                  <tr>
+                    <th scope="row">MPD</th>
+                    <td><strong>95</strong></td>
+                    <td>13</td>
+                    <td>7.696</td>
+                    <td>7.875</td>
+                  </tr>
+
+                  <tr class="mr-esag-row">
+                    <th scope="row">ESAG</th>
+                    <td><strong>95</strong></td>
+                    <td><strong>95</strong></td>
+                    <td>6.079</td>
+                    <td>6.665</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+          </article>
+        </div>
+
+        <!-- 主要结果统一说明 -->
+        <p class="mr-note">
+          Nav.: navigation success; Stable: stable completion;
+          CF: collision-free rate; Dyn.: motion feasibility.
+          T<sub>enter</sub> denotes first goal-entry time, and
+          T<sub>sa</sub> denotes stable-arrival time.
+          Timing metrics should be interpreted together with success rates.
+          The trajectory and distance plots show individual representative
+          trials rather than category averages.
+        </p>
+      </section>
+
+
+<!-- ==================== 实物实验样式 ==================== -->
+<style>
+  #robot .rr-block {
+    margin: 32px 0 40px;
+  }
+
+  #robot .rr-heading {
+    margin: 0 0 20px;
+    color: #303030;
+    font-size: 23px;
+    font-weight: 650;
+    line-height: 1.4;
+    text-align: center;
+  }
+
+  #robot .rr-description {
+    margin: 18px 0;
+    color: #444;
+    font-size: 16px;
+    line-height: 1.75;
+    text-align: justify;
+  }
+
+  /* 平台图 */
+  #robot .rr-platform {
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  #robot .rr-platform img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 0;
+    border-radius: 0;
+  }
+
+  /* 独立图注 */
+  #robot .rr-caption {
+    display: block;
+    min-height: 22px;
+    margin: 12px 0 0;
+    color: #555;
+    font-size: 15px;
+    line-height: 1.65;
+    text-align: justify;
+  }
+
+  /* 表格 */
+  #robot .rr-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  #robot .rr-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-top: 2px solid #222;
+    border-bottom: 2px solid #222;
+    color: #222;
+    font-size: 17px;
+    line-height: 1.5;
+    white-space: nowrap;
+  }
+
+  #robot .rr-table,
+  #robot .rr-table th,
+  #robot .rr-table td,
+  #robot .rr-table caption,
+  #robot .rr-table strong,
+  #robot .rr-table sub {
+    font-family: "Times New Roman", Times, serif !important;
+    font-variant-numeric: lining-nums tabular-nums;
+  }
+
+  #robot .rr-table caption {
+    padding: 0 0 14px;
+    font-size: 17px;
+    font-weight: normal;
+    line-height: 1.5;
+    text-align: left;
+    white-space: normal;
+  }
+
+  #robot .rr-table th,
+  #robot .rr-table td {
+    padding: 9px 8px;
+    border: 0;
+    font-weight: normal;
+    text-align: center;
+  }
+
+  #robot .rr-table thead th {
+    border-bottom: 1px solid #777;
+  }
+
+  #robot .rr-table th:first-child {
+    text-align: left;
+  }
+
+  #robot .rr-table strong {
+    font-weight: 700;
+  }
+
+  #robot .rr-esag-row {
+    background: #eaeaea;
+  }
+
+  /* 六个场景视频：三列两行 */
+  #robot .rr-scenario-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px 18px;
+  }
+
+  #robot .rr-video-item {
+    min-width: 0;
+    margin: 0;
+  }
+
+  #robot .rr-video-title {
+    margin: 0 0 10px;
+    color: #333;
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  #robot .rr-scenario-video {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: contain;
+    border-radius: 6px;
+    background: #111;
+  }
+
+  #robot .rr-video-item .rr-caption {
+    font-size: 14px;
+    text-align: center;
+  }
+
+  /* 两个实拍视频：居中、小尺寸 */
+  #robot .rr-footage-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 220px));
+    justify-content: center;
+    align-items: start;
+    gap: 26px;
+  }
+
+  #robot .rr-player {
+    overflow: hidden;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: #fff;
+  }
+
+  /*
+    实拍画面最大高度 320px。
+    视频尺寸由 JavaScript 根据原始比例计算。
+  */
+  #robot .rr-rotated-stage {
+    position: relative;
+    width: 100%;
+    height: 320px;
+    overflow: hidden;
+    background: #111;
+  }
+
+  #robot .rr-rotated-video {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    object-fit: contain;
+    transform: translate(-50%, -50%) rotate(90deg);
+    transform-origin: center;
+  }
+
+  /* 控件不随画面旋转 */
+  #robot .rr-controls {
+    padding: 8px;
+    background: #f5f5f5;
+  }
+
+  #robot .rr-control-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+  }
+
+  #robot .rr-controls button {
+    padding: 5px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #fff;
+    color: #333;
+    font: 13px Arial, sans-serif;
+    cursor: pointer;
+  }
+
+  #robot .rr-controls input[type="range"] {
+    display: block;
+    width: 100%;
+    margin: 8px 0 0;
+    accent-color: #1761c5;
+  }
+
+  #robot .rr-time {
+    color: #555;
+    font: 12px Arial, sans-serif;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  #robot .rr-status {
+    margin: 0;
+    padding: 0 8px 8px;
+    color: #a12a2a;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  #robot .rr-status:empty {
+    display: none;
+  }
+
+  #robot button:focus-visible,
+  #robot input:focus-visible,
+  #robot .rr-table-wrapper:focus-visible {
+    outline: 2px solid #1761c5;
+    outline-offset: 3px;
+  }
+
+  @media (max-width: 700px) {
+    #robot .rr-scenario-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    #robot .rr-footage-grid {
+      gap: 15px;
+    }
+
+    #robot .rr-heading {
+      font-size: 21px;
+    }
+
+    #robot .rr-table {
+      font-size: 15px;
+    }
+
+    #robot .rr-description,
+    #robot .rr-caption {
+      text-align: left;
+    }
+
+    #robot .rr-control-row {
+      flex-wrap: wrap;
+    }
+  }
+
+  @media (max-width: 440px) {
+    #robot .rr-scenario-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>
+
+<!-- ==================== 实物实验 ==================== -->
+<section class="paper-section container" id="robot">
+  <h2 class="icon-title">
+    <span class="topic-icon" aria-hidden="true">🦾</span>
+    Real-Robot Experiments
+  </h2>
+
+  <p class="section-text">
+    Experiments use the omnidirectional mobile base in
+    <strong>12 indoor contexts</strong>, including open areas,
+    narrow passages and constrained goal-reaching tasks.
+    MPD and ESAG each run five times per context,
+    for 60 trials per method.
+  </p>
+
+  <!-- ==================== 1. 平台与实验设置 ==================== -->
+  <article class="rr-block">
+    <h3 class="rr-heading">Experimental Platform and Setup</h3>
+
+    <figure class="rr-platform">
+      <!--
+        平台图路径：assets/robot_setup.png
+        建议使用不包含底部图注的图片。
+      -->
+      <a
+        href="assets/platform.webp"
+        target="_blank"
+        rel="noopener"
+        aria-label="View the real-robot experimental setup"
+      >
+        <img
+          src="assets/platform.webp"
+          alt="Robot platform, ESAG planning and execution pipeline, and real-world navigation tasks"
+          loading="lazy"
+        >
+      </a>
+
+      <figcaption class="rr-caption">
+        <!-- 在这里修改平台图图注 -->
+        <strong>Figure 8.</strong>
+        Real-robot experimental setup for evaluating MPD and ESAG
+        in representative indoor navigation scenarios.
+      </figcaption>
+    </figure>
+  </article>
+
+  <!-- ==================== 2. 实物实验结果 ==================== -->
+  <article class="rr-block">
+    <h3 class="rr-heading">Real-Robot Planning Performance</h3>
+
+    <div
+      class="rr-table-wrapper"
+      tabindex="0"
+      role="region"
+      aria-label="Real-robot planning performance"
+    >
+      <table class="rr-table">
+        <caption>
+          <strong>Table V.</strong>
+          Overall performance of MPD and ESAG on the selected
+          navigation contexts.
+        </caption>
+
+        <thead>
+          <tr>
+            <th scope="col">Method</th>
+            <th scope="col">Nav. (%) ↑</th>
+            <th scope="col">Stable (%) ↑</th>
+            <th scope="col">CF (%) ↑</th>
+            <th scope="col">T<sub>enter</sub> (s) ↓</th>
+            <th scope="col">T<sub>sa</sub> (s) ↓</th>
+            <th scope="col">Path (m) ↓</th>
+            <th scope="col">Track RMSE (m) ↓</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr>
+            <th scope="row">MPD</th>
+            <td><strong>98.33</strong></td>
+            <td>13.33</td>
+            <td><strong>100.0</strong></td>
+            <td>7.575</td>
+            <td>7.875</td>
+            <td>4.391</td>
+            <td>0.083</td>
+          </tr>
+
+          <tr class="rr-esag-row">
+            <th scope="row">ESAG</th>
+            <td>96.67</td>
+            <td><strong>95.00</strong></td>
+            <td><strong>100.0</strong></td>
+            <td><strong>5.427</strong></td>
+            <td><strong>6.156</strong></td>
+            <td><strong>3.986</strong></td>
+            <td><strong>0.077</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="rr-description">
+      <strong>Earlier stable arrival in the real system.</strong>
+      ESAG raises stable completion from 13.33% to 95.00%
+      and advances mean stable arrival by 1.719 s.
+      Its mean executed path length is 3.986 m,
+      with a tracking RMSE of 0.077 m.
+    </p>
+  </article>
+
+  <!-- ==================== 3. 六个场景视频 ==================== -->
+  <article class="rr-block">
+    <h3 class="rr-heading">Navigation Scenario Demonstrations</h3>
+
+    <!-- 视频文件均放在 assets/videos/ 中 -->
+    <div class="rr-scenario-grid">
+      <figure class="rr-video-item">
+        <h4 class="rr-video-title">Scenario 01</h4>
+
+        <video
+          class="rr-scenario-video"
+          controls
+          muted
+          playsinline
+          preload="metadata"
+          aria-label="Scenario 01"
+        >
+          <source
+            src="assets/scenario_01.mp4"
+            type="video/mp4"
+          >
+          Your browser does not support HTML video.
+        </video>
+
+        <figcaption class="rr-caption">
+          <!-- Scenario 01 图注 -->
+        </figcaption>
+      </figure>
+
+      <figure class="rr-video-item">
+        <h4 class="rr-video-title">Scenario 02</h4>
+
+        <video
+          class="rr-scenario-video"
+          controls
+          muted
+          playsinline
+          preload="metadata"
+          aria-label="Scenario 02"
+        >
+          <source
+            src="assets/scenario_02.mp4"
+            type="video/mp4"
+          >
+          Your browser does not support HTML video.
+        </video>
+
+        <figcaption class="rr-caption">
+          <!-- Scenario 02 图注 -->
+        </figcaption>
+      </figure>
+
+      <figure class="rr-video-item">
+        <h4 class="rr-video-title">Scenario 03</h4>
+
+        <video
+          class="rr-scenario-video"
+          controls
+          muted
+          playsinline
+          preload="metadata"
+          aria-label="Scenario 03"
+        >
+          <source
+            src="assets/scenario_03.mp4"
+            type="video/mp4"
+          >
+          Your browser does not support HTML video.
+        </video>
+
+        <figcaption class="rr-caption">
+          <!-- Scenario 03 图注 -->
+        </figcaption>
+      </figure>
+
+      <figure class="rr-video-item">
+        <h4 class="rr-video-title">Scenario 04</h4>
+
+        <video
+          class="rr-scenario-video"
+          controls
+          muted
+          playsinline
+          preload="metadata"
+          aria-label="Scenario 04"
+        >
+          <source
+            src="assets/scenario_04.mp4"
+            type="video/mp4"
+          >
+          Your browser does not support HTML video.
+        </video>
+
+        <figcaption class="rr-caption">
+          <!-- Scenario 04 图注 -->
+        </figcaption>
+      </figure>
+
+      <figure class="rr-video-item">
+        <h4 class="rr-video-title">Scenario 05</h4>
+
+        <video
+          class="rr-scenario-video"
+          controls
+          muted
+          playsinline
+          preload="metadata"
+          aria-label="Scenario 05"
+        >
+          <source
+            src="assets/scenario_05.mp4"
+            type="video/mp4"
+          >
+          Your browser does not support HTML video.
+        </video>
+
+        <figcaption class="rr-caption">
+          <!-- Scenario 05 图注 -->
+        </figcaption>
+      </figure>
+
+      <figure class="rr-video-item">
+        <h4 class="rr-video-title">Scenario 06</h4>
+
+        <video
+          class="rr-scenario-video"
+          controls
+          muted
+          playsinline
+          preload="metadata"
+          aria-label="Scenario 06"
+        >
+          <source
+            src="assets/scenario_06.mp4"
+            type="video/mp4"
+          >
+          Your browser does not support HTML video.
+        </video>
+
+        <figcaption class="rr-caption">
+          <!-- Scenario 06 图注 -->
+        </figcaption>
+      </figure>
+    </div>
+  </article>
+
+  <!-- ==================== 两个实拍视频 ==================== -->
+  <article class="rr-block" id="robot-footage">
+    <h3 class="rr-heading">Real-Robot Footage</h3>
+
+    <div class="rr-footage-grid">
+      <!-- 实拍视频 01 -->
+      <figure class="rr-video-item">
+        <h4 class="rr-video-title">Robot Footage 01</h4>
+
+        <div class="rr-player">
+          <div class="rr-rotated-stage">
+            <video
+              class="rr-rotated-video"
+              muted
+              playsinline
+              preload="metadata"
+              aria-label="Robot footage 01, rotated clockwise by 90 degrees"
+            >
+              <source
+                src="assets/robot_footage_01.mp4"
+                type="video/mp4"
+              >
+              Your browser does not support HTML video.
+            </video>
+          </div>
+
+          <div class="rr-controls">
+            <div class="rr-control-row">
+              <button type="button" data-action="play">
+                Play
+              </button>
+
+              <span class="rr-time">0:00 / 0:00</span>
+
+              <button type="button" data-action="sound">
+                Unmute
+              </button>
+            </div>
+
+            <input
+              type="range"
+              min="0"
+              max="100"
+              step="0.1"
+              value="0"
+              aria-label="Seek robot footage 01"
+              disabled
+            >
+          </div>
+
+          <p class="rr-status" role="status"></p>
+        </div>
+
+        <figcaption class="rr-caption">
+          <!-- Robot Footage 01 图注 -->
+        </figcaption>
+      </figure>
+
+      <!-- 实拍视频 02 -->
+      <figure class="rr-video-item">
+        <h4 class="rr-video-title">Robot Footage 02</h4>
+
+        <div class="rr-player">
+          <div class="rr-rotated-stage">
+            <video
+              class="rr-rotated-video"
+              muted
+              playsinline
+              preload="metadata"
+              aria-label="Robot footage 02, rotated clockwise by 90 degrees"
+            >
+              <source
+                src="assets/robot_footage_02.mp4"
+                type="video/mp4"
+              >
+              Your browser does not support HTML video.
+            </video>
+          </div>
+
+          <div class="rr-controls">
+            <div class="rr-control-row">
+              <button type="button" data-action="play">
+                Play
+              </button>
+
+              <span class="rr-time">0:00 / 0:00</span>
+
+              <button type="button" data-action="sound">
+                Unmute
+              </button>
+            </div>
+
+            <input
+              type="range"
+              min="0"
+              max="100"
+              step="0.1"
+              value="0"
+              aria-label="Seek robot footage 02"
+              disabled
+            >
+          </div>
+
+          <p class="rr-status" role="status"></p>
+        </div>
+
+        <figcaption class="rr-caption">
+          <!-- Robot Footage 02 图注 -->
+        </figcaption>
+      </figure>
+    </div>
+  </article>
+</section>
+
+<!-- ==================== 实拍视频控制 ==================== -->
+<script>
+  (() => {
+    function formatTime(value) {
+      if (!Number.isFinite(value) || value < 0) {
+        return "0:00";
+      }
+
+      const minutes = Math.floor(value / 60);
+      const seconds = Math.floor(value % 60);
+
+      return `${minutes}:${String(seconds).padStart(2, "0")}`;
+    }
+
+    document.querySelectorAll("#robot .rr-player").forEach((player) => {
+      const stage = player.querySelector(".rr-rotated-stage");
+      const video = player.querySelector("video");
+
+      const playButton = player.querySelector('[data-action="play"]');
+      const soundButton = player.querySelector('[data-action="sound"]');
+
+      const seek = player.querySelector('input[type="range"]');
+      const time = player.querySelector(".rr-time");
+      const status = player.querySelector(".rr-status");
+
+      /*
+        顺时针旋转后的画面宽高交换。
+        按原始比例缩放，完整显示，画面高度不超过 320px。
+      */
+      function fitVideo() {
+        const sourceWidth = video.videoWidth;
+        const sourceHeight = video.videoHeight;
+        const availableWidth = stage.clientWidth;
+
+        if (!sourceWidth || !sourceHeight || !availableWidth) {
+          return;
+        }
+
+        const maxHeight = 320;
+
+        const scale = Math.min(
+          availableWidth / sourceHeight,
+          maxHeight / sourceWidth
+        );
+
+        stage.style.height = `${sourceWidth * scale}px`;
+
+        video.style.width = `${sourceWidth * scale}px`;
+        video.style.height = `${sourceHeight * scale}px`;
+      }
+
+      function updateTime() {
+        const duration = video.duration;
+        const validDuration = Number.isFinite(duration) && duration > 0;
+
+        seek.disabled = !validDuration;
+
+        if (validDuration) {
+          seek.value = (video.currentTime / duration) * 100;
+        }
+
+        time.textContent =
+          `${formatTime(video.currentTime)} / ${formatTime(duration)}`;
+      }
+
+      playButton.addEventListener("click", async () => {
+        if (!video.paused) {
+          video.pause();
+          return;
+        }
+
+        try {
+          await video.play();
+          status.textContent = "";
+        } catch (error) {
+          status.textContent =
+            "Unable to play this video. Check the file path and format.";
+        }
+      });
+
+      video.addEventListener("play", () => {
+        playButton.textContent = "Pause";
+      });
+
+      video.addEventListener("pause", () => {
+        playButton.textContent = "Play";
+      });
+
+      video.addEventListener("ended", () => {
+        playButton.textContent = "Replay";
+      });
+
+      soundButton.addEventListener("click", () => {
+        video.muted = !video.muted;
+      });
+
+      video.addEventListener("volumechange", () => {
+        soundButton.textContent = video.muted ? "Unmute" : "Mute";
+      });
+
+      seek.addEventListener("input", () => {
+        if (Number.isFinite(video.duration) && video.duration > 0) {
+          video.currentTime = (Number(seek.value) / 100) * video.duration;
+          updateTime();
+        }
+      });
+
+      video.addEventListener("loadedmetadata", () => {
+        fitVideo();
+        updateTime();
+      });
+
+      video.addEventListener("durationchange", updateTime);
+      video.addEventListener("timeupdate", updateTime);
+
+      video.addEventListener("error", () => {
+        status.textContent =
+          "Video unavailable. Check the file path and format.";
+      });
+
+      if ("ResizeObserver" in window) {
+        const observer = new ResizeObserver(fitVideo);
+        observer.observe(stage);
+      } else {
+        window.addEventListener("resize", fitVideo);
+      }
+
+      fitVideo();
+      updateTime();
+    });
+  })();
+</script>   
+   
+   
+
+   
+   
+   
+   
+   
+   
+   
+   
+   
+
+   
+   
+   
+   
+   
+
+   
+   
+   
+   
+   
+   
+   
+   
+   
